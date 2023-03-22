@@ -31,7 +31,7 @@ class Inverter(ABC):
         self.serial_number = None
 
         self.max_ac_power = None
-        self.positon = None
+        self.positon = None # 0=Input1; 1=Output; 2=Input2
         self.phase = None
         
         self.status = None
@@ -50,8 +50,10 @@ class Inverter(ABC):
         self.energy_data['overall']['ac_voltage'] = None
         self.energy_data['overall']['ac_current'] = None
         self.energy_data['overall']['ac_power'] = None
-        self.energy_data['overall']['power_limit'] = None
         self.energy_data['overall']['energy_forwarded'] = None
+        
+        self.energy_data['overall']['power_limit'] = None
+        self.energy_data['overall']['active_power_limit'] = None
 
     @abstractmethod
     def test_connection(self) -> bool:

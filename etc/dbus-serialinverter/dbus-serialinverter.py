@@ -18,9 +18,11 @@ from utils import logger
 import utils
 
 from inverter import Inverter
+from dummy import Dummy
 from solis import Solis
 
 supported_inverter_types = [
+    {"inverter": Dummy, "baudrate": 0, "slave": 0},
     {"inverter": Solis, "baudrate": 9600, "slave": 1},
 ]
 

@@ -12,7 +12,7 @@ DRIVER_SUBVERSION = ".1"
 # Logging
 logging.basicConfig()
 logger = logging.getLogger("SerialInverter")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # Config
 config = configparser.ConfigParser()
@@ -22,8 +22,8 @@ config.read([config_file_path])
 
 PUBLISH_CONFIG_VALUES = int(config["DEFAULT"]["PUBLISH_CONFIG_VALUES"])
 
-INVERTER_TYPE = config["INVERTER"]["TYPE"]
-INVERTER_MAX_AC_POWER = int(config["INVERTER"]["MAX_AC_POWER"])
+INVERTER_TYPE = config['INVERTER']['TYPE']
+INVERTER_MAX_AC_POWER = int(config['INVERTER']['MAX_AC_POWER'])
 INVERTER_PHASE = config['INVERTER']['PHASE'] # L1; L2; L3
 INVERTER_POLL_INTERVAL = int(config['INVERTER']['POLL_INTERVAL'])
 INVERTER_POSITION = int(config['INVERTER']['POSITION']) # 0 = AC input 1; 1 = AC output; 2 = AC input 2

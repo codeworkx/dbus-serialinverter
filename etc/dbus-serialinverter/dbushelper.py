@@ -88,7 +88,7 @@ class DbusHelper:
 
         # Create the mandatory objects
         self._dbusservice.add_path("/DeviceInstance", self.instance)
-        self._dbusservice.add_path("/ProductId", 41284, gettextcallback = lambda p, v: ('a144')) # VE_PROD_ID_PV_INVERTER_FRONIUS
+        self._dbusservice.add_path("/ProductId", 0xA141)
         self._dbusservice.add_path(
             "/ProductName", "SerialInverter (" + self.inverter.type + ")"
         )
@@ -105,7 +105,7 @@ class DbusHelper:
         self._dbusservice.add_path('/Ac/MaxPower', self.inverter.max_ac_power)
         self._dbusservice.add_path('/Position', self.inverter.position)
         self._dbusservice.add_path('/Serial', self.inverter.serial_number)
-        self._dbusservice.add_path('/StatusCode', 0, gettextcallback=lambda p, v: ('Off'))
+        self._dbusservice.add_path('/StatusCode', 0) # 0=Startup 0; 1=Startup 1; 2=Startup 2; 3=Startup 3; 4=Startup 4; 5=Startup 5; 6=Startup 6; 7=Running; 8=Standby; 9=Boot loading; 10=Error
         self._dbusservice.add_path('/UpdateIndex', 0)
 
         # Create dynamic inverter info
@@ -127,8 +127,10 @@ class DbusHelper:
         self._dbusservice.add_path("/Ac/Voltage", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' V'))
         self._dbusservice.add_path("/Ac/Current", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' A'))
         self._dbusservice.add_path("/Ac/Power", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
-        self._dbusservice.add_path('/Ac/PowerLimit', self.inverter.energy_data['overall']['power_limit'], writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
         self._dbusservice.add_path("/Ac/Energy/Forward", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 2)) + ' KWh'))
+        
+        # FIXME: This is killing zero feed-in regulation
+        self._dbusservice.add_path('/Ac/PowerLimit', self.inverter.energy_data['overall']['power_limit'], writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
 
         logger.info(f"Publish config values = {utils.PUBLISH_CONFIG_VALUES}")
         if utils.PUBLISH_CONFIG_VALUES == 1:
@@ -138,6 +140,7 @@ class DbusHelper:
 
     def publish_inverter(self, loop):
         # This is called every inverter.poll_interval milli second as set up per inverter type to read and update the data
+        self.inverter.energy_data['overall']['power_limit'] = self._dbusservice['/Ac/PowerLimit']
         try:
             # Call the inverter's refresh_data function
             success = self.inverter.refresh_data()
@@ -185,7 +188,6 @@ class DbusHelper:
         self._dbusservice['/Ac/Voltage'] = self.inverter.energy_data['overall']['ac_voltage']
         self._dbusservice['/Ac/Current'] = self.inverter.energy_data['overall']['ac_current']
         self._dbusservice['/Ac/Power'] = self.inverter.energy_data['overall']['ac_power']
-        self._dbusservice['/Ac/PowerLimit'] = self.inverter.energy_data['overall']['power_limit']
         self._dbusservice['/Ac/Energy/Forward'] = self.inverter.energy_data['overall']['energy_forwarded']
 
         # Increment UpdateIndex - to show that new data is available

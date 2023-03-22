@@ -81,7 +81,7 @@ class Solis(Inverter):
         if (success):
             power_limit_watts = int(self.max_ac_power * (int(power_limit) / 100))
             self.energy_data['overall']['power_limit'] = power_limit_watts
-            logger.debug("Power limit: %s" % power_limit_watts)
+            logger.debug("Active Power limit: %s" % power_limit_watts)
         
         return True
 
@@ -236,19 +236,19 @@ class Solis(Inverter):
         # Status
         success, status = self.read_input_registers(3043, 1, "u16", 1, 0)
         if (success):
-            # Victron: 0=Off;1=Low power mode (search mode);2=Fault;9=Inverting (on),3128,uint16,1,R
+            # Victron: # 0=Startup 0; 1=Startup 1; 2=Startup 2; 3=Startup 3; 4=Startup 4; 5=Startup 5; 6=Startup 6; 7=Running; 8=Standby; 9=Boot loading; 10=Error
             if (status == 0):
                 self.status = 0 # Waiting
             elif (status == 1):
                 self.status = 1 # OpenRun
             elif (status == 2):
-                self.status = 1 # SoftRun
+                self.status = 2 # SoftRun
             elif (status == 3):
-                self.status = 9 # Generating
+                self.status = 7 # Generating
             else:
-                self.status = 2 # Fault
+                self.status = 10 # Fault
         else:
-            self.status = 0 # Off
+            self.status = 8 # Off
             error = True
 
         logger.debug("Inverter status: %s" % self.status)
