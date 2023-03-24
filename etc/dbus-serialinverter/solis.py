@@ -53,12 +53,9 @@ class Solis(Inverter):
         self.poll_interval = utils.INVERTER_POLL_INTERVAL
         self.position = utils.INVERTER_POSITION
 
-        # Hardware version
-        self.hardware_version = 0x0
-
         # Software version
-        success, self.software_version = self.read_input_registers(3000, 1, "u16", 1, 0)
-        logger.debug("Software version: %s" % self.software_version)
+        success, self.hardware_version = self.read_input_registers(3000, 1, "u16", 1, 0)
+        logger.debug("DSP version: %s" % self.hardware_version)
 
         # Serial
         res = self.client.read_input_registers(address = 3060,
@@ -79,9 +76,10 @@ class Solis(Inverter):
         # Power limit
         success, power_limit = self.read_input_registers(3049, 1, "u16", 0.01, 0)
         if (success):
-            power_limit_watts = int(self.max_ac_power * (int(power_limit) / 100))
+            power_limit_watts = float(self.max_ac_power * (int(power_limit) / 100))
             self.energy_data['overall']['power_limit'] = power_limit_watts
-            logger.debug("Active Power limit: %s" % power_limit_watts)
+            self.energy_data['overall']['active_power_limit'] = power_limit_watts
+            logger.debug("Active power limit: %d W (%d %%)" % (power_limit_watts, power_limit))
         
         return True
 
@@ -165,6 +163,13 @@ class Solis(Inverter):
 
         if (output_type == 0):
             # Single phase inverter
+
+            for phase in ['L1', 'L2', 'L3']:
+                self.energy_data[phase]['ac_voltage'] = 0.0
+                self.energy_data[phase]['ac_current'] = 0.0
+                self.energy_data[phase]['ac_power'] = 0.0
+                self.energy_data[phase]['energy_forwarded'] = 0.0
+            
             # AC voltage phase
             success, self.energy_data[self.phase]['ac_voltage'] = self.read_input_registers(3035, 1, "u16", 0.1, 0)
             if (not success):
@@ -180,12 +185,6 @@ class Solis(Inverter):
 
             # Energy forwarded
             self.energy_data[self.phase]['energy_forwarded'] = self.energy_data['overall']['energy_forwarded']
-
-            # AC voltage overall
-            self.energy_data['overall']['ac_voltage'] = self.energy_data[self.phase]['ac_voltage']
-
-            # AC voltage overall
-            self.energy_data['overall']['ac_current'] = self.energy_data[self.phase]['ac_current']
         else:
             # 3-Phase inverter
             # AC voltage L1
@@ -227,12 +226,6 @@ class Solis(Inverter):
             # Energy forwarded L3
             self.energy_data['L3']['energy_forwarded'] = 0
 
-            # AC voltage overall
-            self.energy_data['overall']['ac_voltage'] = 0
-
-            # AC current overall
-            self.energy_data['overall']['ac_current'] = 0
-
         # Status
         success, status = self.read_input_registers(3043, 1, "u16", 1, 0)
         if (success):
@@ -256,7 +249,10 @@ class Solis(Inverter):
         # Power limit
         success, power_limit = self.read_input_registers(3049, 1, "u16", 0.01, 0)
         if (success):
-            power_limit_watts = int(self.max_ac_power * (int(power_limit) / 100))
+            power_limit_watts = float(self.max_ac_power * (int(power_limit) / 100))
+            self.energy_data['overall']['active_power_limit'] = power_limit_watts
+            logger.debug("Active power limit: %d W (%d %%)" % (power_limit_watts, power_limit))
+
             if (power_limit_watts != self.energy_data['overall']['power_limit']):
                 new_power_limit = self.energy_data['overall']['power_limit'] / (self.max_ac_power / 100)
                 logger.info("Power limit has changed from %s to %s" % (power_limit, new_power_limit))

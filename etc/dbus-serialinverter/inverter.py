@@ -27,7 +27,6 @@ class Inverter(ABC):
 
         # Static data
         self.hardware_version = 0x0
-        self.software_version = 0x0
         self.serial_number = None
 
         self.max_ac_power = None
@@ -39,7 +38,7 @@ class Inverter(ABC):
         # Energy data
         self.energy_data = dict()
         
-        for phase in ["L1", "L2", "L3"]:
+        for phase in ['L1', 'L2', 'L3']:
             self.energy_data[phase] = dict()
             self.energy_data[phase]['ac_voltage'] = None
             self.energy_data[phase]['ac_current'] = None
@@ -47,8 +46,6 @@ class Inverter(ABC):
             self.energy_data[phase]['energy_forwarded'] = None
 
         self.energy_data["overall"] = dict()
-        self.energy_data['overall']['ac_voltage'] = None
-        self.energy_data['overall']['ac_current'] = None
         self.energy_data['overall']['ac_power'] = None
         self.energy_data['overall']['energy_forwarded'] = None
         
@@ -92,7 +89,6 @@ class Inverter(ABC):
         logger.info("=== Settings ===")
         logger.info(f"> Serial number: %s" % self.serial_number)
         logger.info(f"> Hardware version: %s" % self.hardware_version)
-        logger.info(f"> Software version: %s" % self.software_version)
         logger.info(f"> Max. AC power: %s" % self.max_ac_power)
         logger.info(f"> Phase: %s" % self.phase)
         logger.info(f"> Position: %s" % self.position)

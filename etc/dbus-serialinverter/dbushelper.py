@@ -67,6 +67,18 @@ class DbusHelper:
             return
         logger.info("Changed DeviceInstance = %d", self.instance)
 
+    def gettextforkWh(self, path, value):
+        return ("%.2FkWh" % (float(value)))
+
+    def gettextforW(self, path, value):
+        return ("%.0FW" % (float(value)))
+
+    def gettextforV(self, path, value):
+        return ("%.0FV" % (float(value)))
+
+    def gettextforA(self, path, value):
+        return ("%.0FA" % (float(value)))
+
     def setup_vedbus(self):
         # Set up dbus service and device instance
         # and notify of all the attributes we intend to update
@@ -88,49 +100,41 @@ class DbusHelper:
 
         # Create the mandatory objects
         self._dbusservice.add_path("/DeviceInstance", self.instance)
-        self._dbusservice.add_path("/ProductId", 0xA141)
-        self._dbusservice.add_path(
-            "/ProductName", "SerialInverter (" + self.inverter.type + ")"
-        )
-        self._dbusservice.add_path(
-            "/FirmwareVersion", str(utils.DRIVER_VERSION) + utils.DRIVER_SUBVERSION
-        )
+        self._dbusservice.add_path("/ProductId", 0xA144)
+        self._dbusservice.add_path("/ProductName", "SerialInverter (" + self.inverter.type + ")")
+        self._dbusservice.add_path("/FirmwareVersion", str(utils.DRIVER_VERSION) + utils.DRIVER_SUBVERSION)
         self._dbusservice.add_path("/HardwareVersion", self.inverter.hardware_version)
         self._dbusservice.add_path("/Connected", 1)
-        self._dbusservice.add_path(
-            "/CustomName", "SerialInverter (" + self.inverter.type + ")", writeable=True
-        )
+        self._dbusservice.add_path("/CustomName", "SerialInverter (" + self.inverter.type + ")", writeable=True)
 
         # Create static inverter info
         self._dbusservice.add_path('/Ac/MaxPower', self.inverter.max_ac_power)
-        self._dbusservice.add_path('/Position', self.inverter.position)
+        self._dbusservice.add_path('/Position', self.inverter.position) # 0 = AC input 1; 1 = AC output; 2 = AC input 2
         self._dbusservice.add_path('/Serial', self.inverter.serial_number)
         self._dbusservice.add_path('/StatusCode', 0) # 0=Startup 0; 1=Startup 1; 2=Startup 2; 3=Startup 3; 4=Startup 4; 5=Startup 5; 6=Startup 6; 7=Running; 8=Standby; 9=Boot loading; 10=Error
         self._dbusservice.add_path('/UpdateIndex', 0)
 
         # Create dynamic inverter info
-        self._dbusservice.add_path("/Ac/L1/Voltage", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' V'))
-        self._dbusservice.add_path("/Ac/L1/Current", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' A'))
-        self._dbusservice.add_path("/Ac/L1/Power", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
-        self._dbusservice.add_path("/Ac/L1/Energy/Forward", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 2)) + ' KWh'))
+        self._dbusservice.add_path("/Ac/L1/Voltage", 0, gettextcallback=self.gettextforV)
+        self._dbusservice.add_path("/Ac/L1/Current", 0, gettextcallback=self.gettextforA)
+        self._dbusservice.add_path("/Ac/L1/Power", 0, gettextcallback=self.gettextforW)
+        self._dbusservice.add_path("/Ac/L1/Energy/Forward", 0, gettextcallback=self.gettextforkWh)
 
-        self._dbusservice.add_path("/Ac/L2/Voltage", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' V'))
-        self._dbusservice.add_path("/Ac/L2/Current", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' A'))
-        self._dbusservice.add_path("/Ac/L2/Power", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
-        self._dbusservice.add_path("/Ac/L2/Energy/Forward", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 2)) + ' KWh'))
+        self._dbusservice.add_path("/Ac/L2/Voltage", 0, gettextcallback=self.gettextforV)
+        self._dbusservice.add_path("/Ac/L2/Current", 0, gettextcallback=self.gettextforA)
+        self._dbusservice.add_path("/Ac/L2/Power", 0, gettextcallback=self.gettextforW)
+        self._dbusservice.add_path("/Ac/L2/Energy/Forward", 0, gettextcallback=self.gettextforkWh)
         
-        self._dbusservice.add_path("/Ac/L3/Voltage", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' V'))
-        self._dbusservice.add_path("/Ac/L3/Current", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' A'))
-        self._dbusservice.add_path("/Ac/L3/Power", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
-        self._dbusservice.add_path("/Ac/L3/Energy/Forward", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 2)) + ' KWh'))
+        self._dbusservice.add_path("/Ac/L3/Voltage", 0, gettextcallback=self.gettextforV)
+        self._dbusservice.add_path("/Ac/L3/Current", 0, gettextcallback=self.gettextforA)
+        self._dbusservice.add_path("/Ac/L3/Power", 0, gettextcallback=self.gettextforW)
+        self._dbusservice.add_path("/Ac/L3/Energy/Forward", 0, gettextcallback=self.gettextforkWh)
 
-        self._dbusservice.add_path("/Ac/Voltage", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' V'))
-        self._dbusservice.add_path("/Ac/Current", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' A'))
-        self._dbusservice.add_path("/Ac/Power", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
-        self._dbusservice.add_path("/Ac/Energy/Forward", 0, writeable=True, gettextcallback=lambda p, v: (str(round(v, 2)) + ' KWh'))
+        self._dbusservice.add_path("/Ac/Power", 0, gettextcallback=self.gettextforW)
+        self._dbusservice.add_path("/Ac/Energy/Forward", 0, gettextcallback=self.gettextforkWh)
         
         # FIXME: This is killing zero feed-in regulation
-        self._dbusservice.add_path('/Ac/PowerLimit', self.inverter.energy_data['overall']['power_limit'], writeable=True, gettextcallback=lambda p, v: (str(round(v, 1)) + ' W'))
+        self._dbusservice.add_path('/Ac/PowerLimit', self.inverter.energy_data['overall']['power_limit'], gettextcallback=self.gettextforW)
 
         logger.info(f"Publish config values = {utils.PUBLISH_CONFIG_VALUES}")
         if utils.PUBLISH_CONFIG_VALUES == 1:
@@ -153,12 +157,10 @@ class DbusHelper:
                 # If the inverter is offline for more than 10 polls (polled every second for most inverters)
                 if self.error_count >= 10:
                     self.inverter.online = False
-                # Has it completely failed
+                # If the inverter is offline for more than 60 polls, quit. VenusOS will restart the driver anyway.
                 if self.error_count >= 60:
                     logger.warn("Inverter seems to be offline, quitting!")
                     loop.quit()
-                    #self.inverter.poll_interval = 900000 # 15 Mins
-                    #logger.warn("Inverter seems to be offline, changing poll interval to %s seconds" % (self.inverter.poll_interval / 1000))
 
             # Publish all the data from the inverter object to dbus
             self.publish_dbus()
@@ -184,9 +186,7 @@ class DbusHelper:
         self._dbusservice['/Ac/L3/Current'] = self.inverter.energy_data['L3']['ac_current']
         self._dbusservice['/Ac/L3/Power'] = self.inverter.energy_data['L3']['ac_power']
         self._dbusservice['/Ac/L3/Energy/Forward'] = self.inverter.energy_data['L3']['energy_forwarded']
-        
-        self._dbusservice['/Ac/Voltage'] = self.inverter.energy_data['overall']['ac_voltage']
-        self._dbusservice['/Ac/Current'] = self.inverter.energy_data['overall']['ac_current']
+
         self._dbusservice['/Ac/Power'] = self.inverter.energy_data['overall']['ac_power']
         self._dbusservice['/Ac/Energy/Forward'] = self.inverter.energy_data['overall']['energy_forwarded']
 
@@ -196,4 +196,4 @@ class DbusHelper:
             index = 0       # Overflow from 255 to 0
         self._dbusservice['/UpdateIndex'] = index
 
-        logger.debug("published to dbus [%s]" % str(self.inverter.energy_data['overall']['energy_forwarded']))
+        logger.debug("published to dbus [%s]" % str(self.inverter.energy_data['overall']['ac_power']))
